@@ -21,6 +21,7 @@ ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /usr/src/app
+RUN apk add fpc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 COPY package*.json ./
 
