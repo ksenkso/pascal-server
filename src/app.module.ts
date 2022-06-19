@@ -14,11 +14,12 @@ import { TaskSetModule } from './task-set/task-set.module';
 @Module({
   imports: [MongooseModule.forRootAsync({
     imports: [ConfigModule.forRoot({
-      envFilePath: ['.env.development.local', '.env.development'],
+      envFilePath: [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`],
     })],
     useFactory: async (configService: ConfigService) => {
       const uri = configService.get<string>('MONGODB_URI');
       console.log({ uri });
+      console.log(process.env.NODE_ENV);
       return ({
         uri,
       });
