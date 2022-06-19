@@ -5,6 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TasksModule } from './tasks/tasks.module';
 import { SolutionModule } from './solution/solution.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { GroupModule } from './group/group.module';
+import { CourseModule } from './course/course.module';
+import { TaskSetModule } from './task-set/task-set.module';
 
 @Module({
   imports: [MongooseModule.forRootAsync({
@@ -19,7 +24,7 @@ import { SolutionModule } from './solution/solution.module';
       });
     },
     inject: [ConfigService],
-  }), TasksModule, SolutionModule],
+  }), TasksModule, SolutionModule, AuthModule, UserModule, GroupModule, CourseModule, TaskSetModule],
   controllers: [AppController],
   providers: [AppService],
 })
