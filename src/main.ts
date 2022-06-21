@@ -16,7 +16,8 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         maxAge: 14 * 24 * 60 * 60 * 1000,
-        sameSite: 'none'
+        sameSite: 'none',
+        secure: true,
       },
       store: MongoStore.create({ mongoUrl: 'mongodb://pascal-server:pascal-server@mongo:27017/pascal-server' })
     }),
