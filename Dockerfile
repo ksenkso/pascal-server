@@ -7,6 +7,7 @@ ENV NODE_ENV=${NODE_ENV}
 
 COPY package*.json ./
 
+RUN apk add fpc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 RUN npm install glob rimraf
 
 RUN npm install

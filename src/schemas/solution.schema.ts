@@ -16,6 +16,9 @@ export class Solution {
   @Prop({ type: Schema.Types.ObjectId, ref: 'Task' })
   task: Task
 
+  @Prop({ type: Schema.Types.Number })
+  score: number;
+
   @Prop({ type: Schema.Types.ObjectId, ref: 'User' })
   student: User
 

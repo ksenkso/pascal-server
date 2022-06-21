@@ -104,9 +104,9 @@ export class SolutionService extends BasicService<SolutionDocument, CreateSoluti
 
   async checkSolution(solution: CreateSolutionDto): Promise<SolutionAssessment> {
     const task = await this.taskModel.findById(solution.task);
-    await this.model.create(solution);
+    const createdSolution = await this.model.create(solution);
 
-    return this.createProgramFile(solution.code)
+    const assessment = await this.createProgramFile(solution.code)
       .then(this.compile.bind(this))
       .then((assessment) => this.checkResult(assessment, task.expectedResult))
       .then((assessment) => this.assessProgram(assessment, solution.code, task))
@@ -123,6 +123,12 @@ export class SolutionService extends BasicService<SolutionDocument, CreateSoluti
 
         return SolutionAssessment.assessmentErrorResult('no file name', err);
       })
+
+    const json = assessment.toJSON();
+    createdSolution.score = json.average;
+    await createdSolution.save();
+
+    return assessment;
   }
 
   private createProgramFile(source: string): Promise<SolutionAssessment> {
