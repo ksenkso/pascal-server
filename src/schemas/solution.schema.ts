@@ -10,6 +10,9 @@ export class Solution {
   @Prop({ type: Schema.Types.String })
   code: string;
 
+  @Prop({ type: Schema.Types.String })
+  output: string;
+
   @Prop({ type: Schema.Types.Number })
   time: number;
 
@@ -21,6 +24,12 @@ export class Solution {
 
   @Prop({ type: Schema.Types.ObjectId, ref: 'User' })
   student: User
+
+  @Prop({ type: [Schema.Types.String] })
+  messages: string[];
+
+  @Prop({ type: Schema.Types.Boolean })
+  successful: boolean;
 
   @Prop({ type: [{ type: Schema.Types.ObjectId, ref: 'Comment' }]})
   comments: Comment[];

@@ -17,4 +17,9 @@ export class SolutionController {
   getForUser(@Param('userId') userId: string) {
     return this.solutionService.getForUser(userId);
   }
+
+  @Get('/:id')
+  findOne(@Param('id') id: string) {
+    return this.solutionService.findOne(id, { relations: ['task', 'student', 'comments'] });
+  }
 }

@@ -126,6 +126,9 @@ export class SolutionService extends BasicService<SolutionDocument, CreateSoluti
 
     const json = assessment.toJSON();
     createdSolution.score = json.average;
+    createdSolution.output = json.output;
+    createdSolution.messages = json.messages;
+    createdSolution.successful = json.successful;
     await createdSolution.save();
 
     return assessment;
