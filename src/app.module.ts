@@ -10,6 +10,7 @@ import { UserModule } from './user/user.module';
 import { GroupModule } from './group/group.module';
 import { CourseModule } from './course/course.module';
 import { TaskSetModule } from './task-set/task-set.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [MongooseModule.forRootAsync({
@@ -25,7 +26,7 @@ import { TaskSetModule } from './task-set/task-set.module';
       });
     },
     inject: [ConfigService],
-  }), TasksModule, SolutionModule, AuthModule, UserModule, GroupModule, CourseModule, TaskSetModule],
+  }), TasksModule, SolutionModule, AuthModule, UserModule, GroupModule, CourseModule, TaskSetModule, CommentModule],
   controllers: [AppController],
   providers: [AppService],
 })

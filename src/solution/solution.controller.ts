@@ -20,6 +20,6 @@ export class SolutionController {
 
   @Get('/:id')
   findOne(@Param('id') id: string) {
-    return this.solutionService.findOne(id, { relations: ['task', 'student', 'comments'] });
+    return this.solutionService.findOne(id, { relations: ['task', 'student', 'comments', { path: 'comments', populate: ['user', 'solution'] }] });
   }
 }

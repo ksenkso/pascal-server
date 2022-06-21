@@ -15,7 +15,6 @@ import { is } from '../utils/utils';
 import { CreateSolutionDto, UpdateSolutionDto } from '../dto/solution.dto';
 import { BasicService } from '../utils/BasicService';
 import { Solution, SolutionDocument } from '../schemas/solution.schema';
-import { Comment, CommentDocument } from '../schemas/comment.schema';
 
 export interface SolutionAssessmentResult {
   average: number;
@@ -92,7 +91,6 @@ export class SolutionService extends BasicService<SolutionDocument, CreateSoluti
 
   constructor(
     @InjectModel(Solution.name) private solutionModel: Model<SolutionDocument>,
-    @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
   ) {
     super(solutionModel);
@@ -101,6 +99,10 @@ export class SolutionService extends BasicService<SolutionDocument, CreateSoluti
     fs.stat(SolutionService.sourcesDir)
       .catch(() => fs.mkdir(SolutionService.sourcesDir, { recursive: true }));
   }
+
+  // addComment(commentDto: CreateCommentDto) {
+  //   this.model.findById(commentDto.solution).update({ $addToSet: { comments: commentDto } })
+  // }
 
   async checkSolution(solution: CreateSolutionDto): Promise<SolutionAssessment> {
     const task = await this.taskModel.findById(solution.task);
