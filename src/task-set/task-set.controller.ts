@@ -19,16 +19,21 @@ export class TaskSetController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.taskSetService.findOne(+id);
+    return this.taskSetService.findOne(id, { relations: ['tasks', 'group'] });
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTaskSetDto: UpdateTaskSetDto) {
-    return this.taskSetService.update(+id, updateTaskSetDto);
+    return this.taskSetService.update(id, updateTaskSetDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.taskSetService.remove(+id);
+    return this.taskSetService.remove(id);
+  }
+
+  @Get('/group/:id')
+  findForGroup(@Param('id') id: string) {
+    return this.taskSetService.findForGroup(id);
   }
 }

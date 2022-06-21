@@ -7,11 +7,13 @@ import {
   SerializedAssessment,
   SerializedAssessmentSchema
 } from '../schemas/serialized-assessment.schema';
+import { TaskSet, TaskSetSchema } from '../schemas/task-set.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Task.name, schema: TaskSchema },
+      { name: TaskSet.name, schema: TaskSetSchema },
       { name: SerializedAssessment.name, schema: SerializedAssessmentSchema },
     ]),
   ],

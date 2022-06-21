@@ -5,25 +5,34 @@ import { writeFile } from 'fs/promises';
 import { v4 } from 'uuid';
 import { spawn } from 'child_process';
 import { Collector } from './collector';
-import { PascalRuntimeError, ResultError } from './errors';
+import { CompilationError, PascalRuntimeError, ResultError } from './errors';
 import { Task, TaskDocument } from '../schemas/task.schema';
 import { AssessmentResult } from './assessments/assessment';
 import { AssessmentFactory } from '../schemas/serialized-assessment.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { is } from '../utils/utils';
-
-export class Solution {
-  code: string;
-}
+import { CreateSolutionDto, UpdateSolutionDto } from '../dto/solution.dto';
+import { BasicService } from '../utils/BasicService';
+import { Solution, SolutionDocument } from '../schemas/solution.schema';
+import { Comment, CommentDocument } from '../schemas/comment.schema';
 
 export interface SolutionAssessmentResult {
   average: number;
   messages: string[];
+  output: string;
+  successful: boolean;
 }
 
 export class SolutionAssessment {
-  constructor(private score = 0, private messages: string[] = []) {
+  private output = '';
+  public successful = true;
+
+  constructor(private programFileName: string, private score = 0, private messages: string[] = []) {
+  }
+
+  getProgramFileName() {
+    return this.programFileName;
   }
 
   addResult(result: AssessmentResult) {
@@ -31,45 +40,76 @@ export class SolutionAssessment {
     this.messages.push(result.description);
   }
 
+  setOutput(output: string) {
+    this.output = output;
+  }
+
   toJSON(): SolutionAssessmentResult {
     return {
       average: this.score / this.messages.length,
       messages: this.messages,
+      output: this.output,
+      successful: this.successful,
     }
   }
 
   static wrongResult(error: ResultError): SolutionAssessment {
-    return new SolutionAssessment(0, [error.message]);
+    const assessment = new SolutionAssessment(error.fileName, 0, [error.message]);
+    assessment.setOutput(error.stdout);
+    assessment.successful = false;
+
+    return assessment;
   }
 
   static runtimeErrorResult(error: PascalRuntimeError): SolutionAssessment {
-    return new SolutionAssessment(0, [error.message]);
+    const assessment = new SolutionAssessment(error.fileName, 0, [error.message]);
+    assessment.setOutput(error.stdout);
+    assessment.successful = false;
+
+    return assessment;
   }
 
-  static assessmentErrorResult(error: Error): SolutionAssessment {
-    return new SolutionAssessment(AssessmentResult.MIN_SCORE, [error.message]);
+  static assessmentErrorResult(fileName: string, error: Error): SolutionAssessment {
+    const assessment =  new SolutionAssessment(fileName, AssessmentResult.MIN_SCORE, [error.message]);
+    assessment.successful = false;
+
+    return assessment;
+  }
+
+  static compilationErrorResult(error: CompilationError): SolutionAssessment {
+    const assessment = new SolutionAssessment(error.fileName, 0, [error.message]);
+    assessment.setOutput(error.stderr);
+    assessment.successful = false;
+
+    return assessment;
   }
 }
 
 @Injectable()
-export class SolutionService {
+export class SolutionService extends BasicService<SolutionDocument, CreateSolutionDto, UpdateSolutionDto>{
   private static outputDir = '/tmp/pascal-server/output';
   private static sourcesDir = '/tmp/pascal-server/sources';
 
-  constructor(@InjectModel(Task.name) private taskModel: Model<TaskDocument>) {
+  constructor(
+    @InjectModel(Solution.name) private solutionModel: Model<SolutionDocument>,
+    @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
+  ) {
+    super(solutionModel);
     fs.stat(SolutionService.outputDir)
       .catch(() => fs.mkdir(SolutionService.outputDir, { recursive: true }));
     fs.stat(SolutionService.sourcesDir)
       .catch(() => fs.mkdir(SolutionService.sourcesDir, { recursive: true }));
   }
 
-  async checkSolution(solution: Solution, taskId: string): Promise<SolutionAssessment> {
-    const task = await this.taskModel.findById(taskId);
+  async checkSolution(solution: CreateSolutionDto): Promise<SolutionAssessment> {
+    const task = await this.taskModel.findById(solution.task);
+    await this.model.create(solution);
 
     return this.createProgramFile(solution.code)
       .then(this.compile.bind(this))
-      .then((programFileName) => this.checkResult(programFileName, task.expectedResult))
-      .then(() => this.assessProgram(solution.code, task))
+      .then((assessment) => this.checkResult(assessment, task.expectedResult))
+      .then((assessment) => this.assessProgram(assessment, solution.code, task))
       .catch(err => {
         if (is(err, ResultError)) {
           return SolutionAssessment.wrongResult(err);
@@ -77,21 +117,24 @@ export class SolutionService {
         if (is(err, PascalRuntimeError)) {
           return SolutionAssessment.runtimeErrorResult(err);
         }
+        if(is(err, CompilationError)) {
+          return SolutionAssessment.compilationErrorResult(err);
+        }
 
-        return SolutionAssessment.assessmentErrorResult(err);
+        return SolutionAssessment.assessmentErrorResult('no file name', err);
       })
   }
 
-  private createProgramFile(source: string): Promise<string> {
+  private createProgramFile(source: string): Promise<SolutionAssessment> {
     const name = path.resolve(__dirname, SolutionService.sourcesDir, `${v4()}.pas`);
 
     return writeFile(name, source, 'utf8')
-      .then(() => name);
+      .then(() => new SolutionAssessment(name));
   }
 
-  private compile(file: string): Promise<string> {
+  private compile(assessment: SolutionAssessment): Promise<SolutionAssessment> {
     return new Promise((resolve, reject) => {
-      const compilation = spawn('fpc', ['-Tlinux', `-FE${SolutionService.outputDir}`, file]);
+      const compilation = spawn('fpc', ['-Tlinux', `-FE${SolutionService.outputDir}`, assessment.getProgramFileName()]);
 
       const outCollector = new Collector(compilation.stdout);
 
@@ -99,17 +142,17 @@ export class SolutionService {
         const errors = outCollector.getAll().split('\n').slice(4).join('\n');
 
         if (compileCode) {
-          reject({ code: compileCode, errors });
+          reject(new CompilationError(assessment.getProgramFileName(), errors, compileCode))
         } else {
-          resolve(file);
+          resolve(assessment);
         }
       });
     });
   }
 
-  private checkResult(programFileName: string, expected: string, args: string[] = []): Promise<string> {
+  private checkResult(assessment: SolutionAssessment, expected: string, args: string[] = []): Promise<SolutionAssessment> {
     return new Promise((resolve, reject) => {
-      const executableName = path.basename(programFileName, '.pas');
+      const executableName = path.basename(assessment.getProgramFileName(), '.pas');
       const run = spawn(path.resolve(__dirname, SolutionService.outputDir, executableName), args);
       const resultCollector = new Collector(run.stdout);
       const errorCollector = new Collector(run.stderr);
@@ -118,29 +161,34 @@ export class SolutionService {
         const code = Number(runCode);
         const result = resultCollector.getAll();
 
+        assessment.setOutput(result);
+
         if (runCode) {
-          reject(new PascalRuntimeError(result, errorCollector.getAll(), code));
+          reject(new PascalRuntimeError(assessment.getProgramFileName(), result, errorCollector.getAll(), code));
           return;
         }
 
         if (result !== expected) {
-          reject(new ResultError(result, expected));
+          reject(new ResultError(assessment.getProgramFileName(), result, expected));
           return;
         }
 
-        resolve(programFileName);
+        resolve(assessment);
       });
     });
   }
 
-  private assessProgram(source: string, task: TaskDocument): SolutionAssessment {
+  private assessProgram(assessment: SolutionAssessment, source: string, task: TaskDocument): SolutionAssessment {
     const assessments = task.assessments.map(AssessmentFactory.createAssessment);
 
-    const solutionAssessment = new SolutionAssessment();
-    assessments.forEach(assessment => {
-      solutionAssessment.addResult(assessment.run(source));
+    assessments.forEach(a => {
+      assessment.addResult(a.run(source));
     });
 
-    return solutionAssessment;
+    return assessment;
+  }
+
+  getForUser(userId: string) {
+    return this.solutionModel.find({ user: userId }).populate(['task', 'comments', 'student']).exec();
   }
 }

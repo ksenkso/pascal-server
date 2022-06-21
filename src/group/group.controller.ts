@@ -52,4 +52,10 @@ export class GroupController {
   addStudents(@Param('id') id: string, @Body() studentIds: string[]) {
     return this.groupService.addStudents(id, studentIds);
   }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get(':id/students')
+  getStudents(@Param('id') id: string) {
+    return this.groupService.getStudents(id);
+  }
 }

@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as session from 'express-session';
-import * as passport from 'passport';
-import * as cookieParser from 'cookie-parser';
+import session from 'express-session';
+import passport from 'passport';
+import cookieParser from 'cookie-parser';
 import { UserService } from './user/user.service';
+import MongoStore from 'connect-mongo';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +17,7 @@ async function bootstrap() {
       cookie: {
         maxAge: 14 * 24 * 60 * 60 * 1000,
       },
+      store: MongoStore.create({ mongoUrl: 'mongodb://pascal-server:pascal-server@localhost:27017/pascal-server' })
     }),
   );
 

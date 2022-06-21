@@ -1,14 +1,20 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
-import { Solution, SolutionService } from './solution.service';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { SolutionService } from './solution.service';
+import { CreateSolutionDto } from '../dto/solution.dto';
 
 @Controller('solution')
 export class SolutionController {
   constructor(private solutionService: SolutionService) {
   }
 
-  @Post(':taskId')
-  checkSolution(@Param('taskId') taskId: string, @Body() solution: Solution) {
+  @Post('/')
+  checkSolution(@Body() solution: CreateSolutionDto) {
     console.log(solution);
-    return this.solutionService.checkSolution(solution, taskId);
+    return this.solutionService.checkSolution(solution);
+  }
+
+  @Get('/user/:userId')
+  getForUser(@Param('userId') userId: string) {
+    return this.solutionService.getForUser(userId);
   }
 }

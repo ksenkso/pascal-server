@@ -26,11 +26,11 @@ export abstract class BasicService<D extends Document, Create, Update> {
   }
 
   async update(id: string, updateDto: Update) {
-    return this.model.updateOne({ id }, updateDto).exec();
+    return this.model.findById(id).update(updateDto).exec();
   }
 
   async remove(id: string): Promise<void> {
-    await this.model.deleteOne({id}).exec();
+    await this.model.findById(id).deleteOne().exec();
   }
 
   protected populate(query: any, options?: RelationOptions) {

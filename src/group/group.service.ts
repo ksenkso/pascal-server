@@ -43,4 +43,10 @@ export class GroupService extends BasicService<GroupDocument, CreateGroupDto, Up
 
     await Promise.all([addToGroup, updateStudents]);
   }
+
+  async getStudents(id: string) {
+    const group = await this.model.findById(id).populate('students').exec();
+
+    return group.students;
+  }
 }

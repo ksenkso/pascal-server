@@ -27,7 +27,10 @@ export class TaskSet {
   group: Group;
 
   @Prop({
-    type: [TaskSchema]
+    type: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Task'
+    }]
   })
   tasks: Task[];
 }

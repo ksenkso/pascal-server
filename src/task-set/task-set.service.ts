@@ -1,26 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTaskSetDto } from './dto/create-task-set.dto';
 import { UpdateTaskSetDto } from './dto/update-task-set.dto';
+import { BasicService } from '../utils/BasicService';
+import { TaskSet, TaskSetDocument } from '../schemas/task-set.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
-export class TaskSetService {
-  create(createTaskSetDto: CreateTaskSetDto) {
-    return 'This action adds a new taskSet';
+export class TaskSetService extends BasicService<TaskSetDocument, CreateTaskSetDto, UpdateTaskSetDto>{
+  constructor(@InjectModel(TaskSet.name) taskSetModel: Model<TaskSetDocument>) {
+    super(taskSetModel);
   }
 
-  findAll() {
-    return `This action returns all taskSet`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} taskSet`;
-  }
-
-  update(id: number, updateTaskSetDto: UpdateTaskSetDto) {
-    return `This action updates a #${id} taskSet`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} taskSet`;
+  findForGroup(groupId: string) {
+    return this.model.find({ group: groupId }).populate(['tasks', 'group']).exec();
   }
 }

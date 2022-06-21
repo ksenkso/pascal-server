@@ -37,7 +37,7 @@ export class AuthService {
   }
 
   async getByEmail(email: string): Promise<UserDocument> {
-    return this.userModel.findOne({ email }).exec();
+    return this.userModel.findOne({ email }).populate(['groups']).exec();
   }
 
   async validateUser(email: string, password: string): Promise<UserDocument> {
