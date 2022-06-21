@@ -9,8 +9,6 @@ import MongoStore from 'connect-mongo';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const mongoHost = process.env.NODE_ENV === 'production' ? 'mongo' : 'localhost';
-
   app.use(cookieParser());
   app.use(
     session({
@@ -20,7 +18,7 @@ async function bootstrap() {
         maxAge: 14 * 24 * 60 * 60 * 1000,
         sameSite: 'none'
       },
-      store: MongoStore.create({ mongoUrl: `mongodb://pascal-server:pascal-server@${mongoHost}:27017/pascal-server` })
+      store: MongoStore.create({ mongoUrl: 'mongodb://pascal-server:pascal-server@mongo:27017/pascal-server' })
     }),
   );
 
