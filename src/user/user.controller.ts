@@ -15,6 +15,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthenticatedGuard } from '../guards/authenticated.guard';
 import { Request } from 'express';
+import { UpdateWriteOpResult } from 'mongoose';
 
 @Controller('user')
 export class UserController {
@@ -49,7 +50,7 @@ export class UserController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UpdateWriteOpResult> {
     return this.userService.update(id, updateUserDto);
   }
 

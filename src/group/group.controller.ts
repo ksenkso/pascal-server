@@ -16,6 +16,7 @@ import { UpdateGroupDto } from './dto/update-group.dto';
 import { Request } from 'express';
 import { UserDocument } from '../schemas/user.schema';
 import { AuthenticatedGuard } from '../guards/authenticated.guard';
+import { UpdateWriteOpResult } from 'mongoose';
 
 @Controller('group')
 export class GroupController {
@@ -38,7 +39,7 @@ export class GroupController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
+  update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto): Promise<UpdateWriteOpResult> {
     return this.groupService.update(id, updateGroupDto);
   }
 

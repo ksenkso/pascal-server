@@ -1,4 +1,4 @@
-import { Document, Model } from 'mongoose';
+import { Document, Model, UpdateWriteOpResult } from 'mongoose';
 import { RelationOptions } from '../group/group.service';
 
 export abstract class BasicService<D extends Document, Create, Update> {
@@ -25,7 +25,7 @@ export abstract class BasicService<D extends Document, Create, Update> {
     return query.exec();
   }
 
-  async update(id: string, updateDto: Update) {
+  async update(id: string, updateDto: Update): Promise<UpdateWriteOpResult> {
     return this.model.findById(id).update(updateDto).exec();
   }
 

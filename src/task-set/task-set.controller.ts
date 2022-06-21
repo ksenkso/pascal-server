@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TaskSetService } from './task-set.service';
 import { CreateTaskSetDto } from './dto/create-task-set.dto';
 import { UpdateTaskSetDto } from './dto/update-task-set.dto';
+import { UpdateWriteOpResult } from 'mongoose';
 
 @Controller('task-set')
 export class TaskSetController {
@@ -23,7 +24,7 @@ export class TaskSetController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskSetDto: UpdateTaskSetDto) {
+  update(@Param('id') id: string, @Body() updateTaskSetDto: UpdateTaskSetDto): Promise<UpdateWriteOpResult> {
     return this.taskSetService.update(id, updateTaskSetDto);
   }
 
