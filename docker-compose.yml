@@ -9,7 +9,7 @@ services:
       dockerfile: ./Dockerfile
     command: npm run start:debug
     ports:
-      - 4000:4000
+      - "4000:4000"
     networks:
       - nest_network
     volumes:
@@ -24,7 +24,7 @@ services:
       dockerfile: ./Dockerfile
     command: npm run start:prod
     ports:
-      - 4000:4000
+      - "4000:4000"
     networks:
       - nest_network
   mongo:

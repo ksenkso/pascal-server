@@ -5,9 +5,17 @@ import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import { UserService } from './user/user.service';
 import MongoStore from 'connect-mongo';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const httpsOptions = {
+    key: fs.readFileSync('./key.pem'),
+    cert: fs.readFileSync('./cert.pem'),
+  }
+
+  const app = await NestFactory.create(AppModule, {
+    httpsOptions
+  });
 
   app.use(cookieParser());
   app.use(
