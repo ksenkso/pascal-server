@@ -67,4 +67,8 @@ export class TasksService {
     return this.taskModel.findById(id).populate(['taskSet', 'assessments'])
       .exec()
   }
+
+  delete(id: string) {
+    return this.taskModel.findById(id).deleteOne().exec();
+  }
 }
